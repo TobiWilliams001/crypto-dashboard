@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CryptoData } from '@/lib/types';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://stream.binance.com:9443/ws/!ticker@arr';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://ws-api.kucoin.com/endpoint';
 
 export function useWebSocket() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -15,18 +15,26 @@ export function useWebSocket() {
     ws.onopen = () => {
       console.log('WebSocket connected');
       setError(null);
+      ws.send(JSON.stringify({
+        type: "subscribe",
+        topic: "/market/ticker:BTC-USDT,ETH-USDT",
+        privateChannel: false,
+        response: true
+      }));
     };
 
     ws.onmessage = (event) => {
       try {
         const json = JSON.parse(event.data);
-        const cryptoData: CryptoData[] = json.map((item: any) => ({
-          symbol: item.s,
-          price: parseFloat(item.c),
-          change: parseFloat(item.p),
-          changePercent: parseFloat(item.P),
-        }));
-        setData(cryptoData);
+        if (json.topic === "/market/ticker") {
+          const cryptoData: CryptoData[] = json.data.map((item: any) => ({
+            symbol: item.symbol,
+            price: parseFloat(item.price),
+            change: parseFloat(item.change),
+            changePercent: parseFloat(item.changeRate),
+          }));
+          setData(cryptoData);
+        }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
       }
@@ -39,9 +47,9 @@ export function useWebSocket() {
 
     ws.onclose = () => {
       console.log('WebSocket disconnected. Reconnecting in 5s...');
-      setTimeout(() => connect(), 5000);
+      setTimeout(connect, 5000);
     };
-
+    
     setSocket(ws);
 
     return () => {
