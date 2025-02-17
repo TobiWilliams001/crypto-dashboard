@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CryptoData } from '@/lib/types';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://ws-api.kucoin.com/endpoint';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://ws-api.kucoin.com/endpoint'; // Use KuCoin with fallback
 
 export function useWebSocket() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -15,18 +15,23 @@ export function useWebSocket() {
     ws.onopen = () => {
       console.log('WebSocket connected');
       setError(null);
-      ws.send(JSON.stringify({
-        type: "subscribe",
-        topic: "/market/ticker:BTC-USDT,ETH-USDT",
-        privateChannel: false,
-        response: true
-      }));
+
+      // Send subscription message for KuCoin
+      ws.send(
+        JSON.stringify({
+          type: 'subscribe',
+          topic: '/market/ticker:BTC-USDT,ETH-USDT',
+          privateChannel: false,
+          response: true,
+        })
+      );
     };
 
     ws.onmessage = (event) => {
       try {
         const json = JSON.parse(event.data);
-        if (json.topic === "/market/ticker") {
+
+        if (json.topic === '/market/ticker') {
           const cryptoData: CryptoData[] = json.data.map((item: any) => ({
             symbol: item.symbol,
             price: parseFloat(item.price),
@@ -49,7 +54,7 @@ export function useWebSocket() {
       console.log('WebSocket disconnected. Reconnecting in 5s...');
       setTimeout(connect, 5000);
     };
-    
+
     setSocket(ws);
 
     return () => {
