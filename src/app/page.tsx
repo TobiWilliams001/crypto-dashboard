@@ -3,32 +3,27 @@
 import React, { useEffect } from 'react';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useCryptoStore } from './store/cryptoStore';
+import Header from './components/Header';
+import SearchBar from './components/SearchBar';
 import CryptoList from './components/CryptoList';
 import PriceChart from './components/PriceChart';
 import AIInsights from './components/AIInsights';
 
-
-import dynamic from 'next/dynamic';
-
-const PriceChart = dynamic(() => import('./components/PriceChart'), {
-  loading: () => <p>Loading chart...</p>,
-});
-
-const AIInsights = dynamic(() => import('./components/AIInsights'), {
-  loading: () => <p>Loading AI insights...</p>,
-});
-
 export default function Home() {
-  const websocketData = useWebSocket();
+  const { data: websocketData, error } = useWebSocket();
   const { setCryptoData } = useCryptoStore();
 
   useEffect(() => {
-    setCryptoData(websocketData);
+    if (websocketData) {
+      setCryptoData(websocketData);
+    }
   }, [websocketData, setCryptoData]);
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Real-Time Crypto Dashboard</h1>
+      <Header />
+      <SearchBar />
+      {error && <p className="text-red-500 mb-4">{error}</p>}
       <CryptoList />
       <div className="mt-8">
         <PriceChart />
