@@ -1,23 +1,23 @@
-'use client';
+'use client'
 
-import React, { useEffect } from 'react';
-import { useWebSocket } from './hooks/useWebSocket';
-import { useCryptoStore } from './store/cryptoStore';
-import Header from './components/Header';
-import SearchBar from './components/SearchBar';
-import CryptoList from './components/CryptoList';
-import PriceChart from './components/PriceChart';
-import AIInsights from './components/AIInsights';
+import React, { useEffect } from 'react'
+import { useWebSocket } from './hooks/useWebSocket'
+import { useCryptoStore } from './store/cryptoStore'
+import Header from './components/Header'
+import SearchBar from './components/SearchBar'
+import CryptoList from './components/CryptoList'
+import PriceChart from './components/PriceChart'
+import AIInsights from './components/AIInsights'
 
 export default function Home() {
-  const { data: websocketData, error } = useWebSocket();
-  const { setCryptoData } = useCryptoStore();
+  const { data: websocketData, error } = useWebSocket()
+  const { setCryptoData } = useCryptoStore()
 
   useEffect(() => {
     if (websocketData) {
-      setCryptoData(websocketData);
+      setCryptoData(websocketData)
     }
-  }, [websocketData, setCryptoData]);
+  }, [websocketData, setCryptoData])
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -30,5 +30,5 @@ export default function Home() {
       </div>
       <AIInsights />
     </main>
-  );
+  )
 }
