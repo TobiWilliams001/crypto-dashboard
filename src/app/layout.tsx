@@ -1,3 +1,5 @@
+'use client';
+
 import { ThemeProvider } from 'next-themes';
 import '../styles/globals.css';
 
@@ -7,7 +9,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
