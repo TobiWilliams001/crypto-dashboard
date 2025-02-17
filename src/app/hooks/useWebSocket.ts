@@ -9,6 +9,7 @@ export function useWebSocket() {
   const [error, setError] = useState<string | null>(null);
 
   const connect = useCallback(() => {
+    console.log('Connecting to WebSocket at:', WS_URL);
     const ws = new WebSocket(WS_URL);
 
     ws.onopen = () => {
@@ -17,38 +18,43 @@ export function useWebSocket() {
     };
 
     ws.onmessage = (event) => {
-      const json = JSON.parse(event.data);
-      const cryptoData: CryptoData[] = json.map((item: any) => ({
-        symbol: item.s,
-        price: parseFloat(item.c),
-        change: parseFloat(item.p),
-        changePercent: parseFloat(item.P),
-      }));
-      setData(cryptoData);
+      try {
+        const json = JSON.parse(event.data);
+        const cryptoData: CryptoData[] = json.map((item: any) => ({
+          symbol: item.s,
+          price: parseFloat(item.c),
+          change: parseFloat(item.p),
+          changePercent: parseFloat(item.P),
+        }));
+        setData(cryptoData);
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
     };
 
     ws.onerror = (event) => {
       console.error('WebSocket error:', event);
-      setError('Failed to connect to WebSocket');
+      setError(event instanceof ErrorEvent ? event.message : 'WebSocket connection failed');
     };
 
     ws.onclose = () => {
-      console.log('WebSocket disconnected');
-      setError('WebSocket disconnected. Attempting to reconnect...');
-      setTimeout(connect, 5000);
+      console.log('WebSocket disconnected. Reconnecting in 5s...');
+      setTimeout(() => connect(), 5000);
     };
 
     setSocket(ws);
+
+    return () => {
+      ws.close();
+    };
   }, []);
 
   useEffect(() => {
     connect();
     return () => {
-      if (socket) {
-        socket.close();
-      }
+      socket?.close();
     };
-  }, [connect]);
+  }, []);
 
   return { data, error };
 }
